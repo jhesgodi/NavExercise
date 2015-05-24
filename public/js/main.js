@@ -1,14 +1,16 @@
+/*
+	Populate Navbar Flow
+	==================================================
+	1. AJAX to retrieve Navbar data
+	2. Auto Generate Navbar from data
+	3. Attach events to Navbar
+	   Events: PrimNav, SecondNav, hamburger/close/Esc ,key/click outside
+*/
+
 (function () {
 
-// Flow:
-// -------------
-// 1. AJAX to retrieve Navbar data
-// 2. Auto Generate Navbar from data
-// 3. Attach events to Navbar
-//    Events: PrimNav, SecondNav, hamburger/close/Esc ,key/click outside
-
-/* Populate navbar
-================================================== */
+	/* Retrieve data from server
+	================================================== */
 	function getData(callback) {
 
 		var request = new XMLHttpRequest();
@@ -36,14 +38,18 @@
 		request.send();
 	}
 
+	/* Generate Navbar HTML items from data
+	================================================== */
 	function generateNavbar(html, data) {
 		for (var i = 0; i < data.length; i++) {
 
+			// Check if there is sub-items
 			var hasItems = data[i].items && data[i].items.length > 0;
 
 			html += '<li>';
 			html += '<a href="' + data[i].url + '">' + data[i].label + ((hasItems)? '<i class="icon-chevron-down"></i>' : '') + '</a>';
 
+			// Recursive call to generate nested items
 			if (hasItems) {
 				html += '<ul class="sub-item">';
 				html += generateNavbar('', data[i].items);
@@ -56,39 +62,46 @@
 		return html;
 	}
 
+	/* Populate Navbar Flow
+	================================================== */
 	function init() {
 		// Get data from JSON file
 		getData(function(err, data) {
 
+			// There was a connection error of some sort
 			if (err) {
 				throw err;
 			}
 
-			// Generate Navbar from data object
+			// Generate Navbar's HMTL items from data object
 			var html = generateNavbar('', data.items);
 
 			// Set Navbar's HTML content
 			document.getElementById('nav-menu').innerHTML = html;
 
-			// Bind Events
+			// Add behavior: Bind Events
 			bindEvents("click", '#nav-menu > li > a', evToggleSecondNav);
 			bindEvents("click", 'body', evToggleTranslucentMask);
 			bindEvents("click", '#toggle-open', evToggleMobileMenu);
 			bindEvents("keyup", 'body', evToggleTranslucentMaskEsc);
-
+			// Check window resize
 			window.onresize = (function () {
 				if (window.innerWidth >= 768 ) {
 					resetPrimaryNav();
 					toggleContentWrap();
 				}
 			});
+
 		});
 	}
 
+	// Initialize populate Navbar flow
 	init();
 
-/* Events
-================================================== */
+
+	/* Events
+	================================================== */
+
 	function bindEvents(event, element, evFunction) {
 
 		var el = document.querySelectorAll(element);
@@ -96,27 +109,6 @@
 		for (var i = 0; i < el.length; i++) {
 			el[i].addEventListener(event, evFunction);
 		};
-	}
-
-	function toggleContentWrap(status) {
-		el = document.querySelector('.content-wrap');
-		if (status === 'active') {
-			el.classList.add('active');
-		} else {
-			el.classList.remove('active');
-		}
-	}
-
-	function resetPrimaryNav() {
-		var elements = document.querySelectorAll('#nav-menu > li');
-		for (var i = 0; i < elements.length; i++) {
-			elements[i].classList.remove('active');
-		}
-	}
-
-	function resetMobileNav() {
-		var navbar = document.querySelector('.navbar');
-		navbar.classList.remove('active');
 	}
 
 	function evToggleTranslucentMask(e) {
@@ -152,6 +144,27 @@
 		var navbar = document.querySelector('.navbar');
 		navbar.classList.toggle('active');
 		toggleContentWrap('active');
+	}
+
+	function toggleContentWrap(status) {
+		el = document.querySelector('.content-wrap');
+		if (status === 'active') {
+			el.classList.add('active');
+		} else {
+			el.classList.remove('active');
+		}
+	}
+
+	function resetPrimaryNav() {
+		var elements = document.querySelectorAll('#nav-menu > li');
+		for (var i = 0; i < elements.length; i++) {
+			elements[i].classList.remove('active');
+		}
+	}
+
+	function resetMobileNav() {
+		var navbar = document.querySelector('.navbar');
+		navbar.classList.remove('active');
 	}
 
 })();
